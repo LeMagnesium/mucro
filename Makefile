@@ -1,10 +1,13 @@
 VERSION = 0.0.8
-BUILD = 0096
+BUILD = 0098
 all:
+	# Clean up the directories
 	rm -R bin/ obj/
+	# If they do not exist, it creates them
+	# TODO: Use a if
 	mkdir bin/ obj/
-	gcc libutil.h -o ./obj/libutil.o
-	gcc mucro.c -o ./bin/mucro
+	gcc ./src/lib/libutil.h -o ./obj/libutil.o
+	gcc ./src/mucro.c -o ./bin/mucro
 
 install: all
 	sudo cp ./bin/mucro /usr/bin
