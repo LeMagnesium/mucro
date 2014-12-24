@@ -2,7 +2,7 @@ VERSION = 0.0.8
 BUILD = 0098
 all:
 	# Clean up the directories
-	rm -R bin/ obj/
+	# rm -R bin/ obj/
 	# If they do not exist, it creates them
 	# TODO: Use a if
 	mkdir bin/ obj/
