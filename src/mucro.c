@@ -9,7 +9,7 @@
 #include <string.h>
 #include <dirent.h>
 #include <errno.h>
-#include "lib/libutil.h"
+#include "libutil.h"
 
 /* µ_OPTIONS STRUCT */
 struct u_option {

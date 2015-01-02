@@ -5,14 +5,12 @@ all:
 	# rm -R bin/ obj/
 	# If they do not exist, it creates them
 	# TODO: Use a if
-	mkdir bin/ obj/
-	gcc ./src/lib/libutil.h -o ./obj/libutil.o
-	gcc ./src/mucro.c -o ./bin/mucro
+	# mkdir bin/ obj/
+	gcc ./src/libutil.h -o ./libutil.o
+	gcc ./src/mucro.c -o ./mucro
 
 install: all
-	sudo cp ./bin/mucro /usr/bin
+	sudo cp ./mucro /usr/bin
 
 uninstall: all
-	rm -R ./bin
-	rm -R ./obj
 	sudo rm /usr/bin/mucro
