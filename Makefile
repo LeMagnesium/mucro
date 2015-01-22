@@ -1,5 +1,4 @@
-VERSION = 0.0.8
-BUILD = 0098
+VERSION = 0.0.9
 all:
 	# Clean up the directories
 	# rm -R bin/ obj/

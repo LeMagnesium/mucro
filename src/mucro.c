@@ -2,6 +2,7 @@
 
 /*
 	Mµcro, v0.0.9 ßý Mg, CopyLeft (¢) 2014.
+	License : GPLv2 and further
 */
 
 #include <stdio.h>
@@ -86,10 +87,12 @@ int main(int argc, char *argv[]) {
 	textcolor(0,7,0);
 	founds = ls(".",camembert.filename,camembert.recursive,
 		camembert.strict,camembert.quiet,camembert.bare,ofpnt);
+
 	textcolor(1,2,0);
 	if (!camembert.bare) {
 		printf("Found %d times.\n", founds);
 	}
+
 	if (ofpnt != NULL) {
 		char towrite[200];char neonum[6];
 		sprintf(towrite, "Found %d times.\n", founds);
@@ -124,13 +127,14 @@ int ls(char rep[], char* seek, int recursive, int strict, int quiet, int bare, F
 		(strstr(iterator->d_name,seek) != NULL && strict == 0)||
 		(strcmp(iterator->d_name,seek) == 0 && strict == 1)
 		) {
-			//textcolor(0,3,0);printf("%d:", ++founds);
-			//printf("-increase-\n");
 			++founds;
 			if(!quiet) {
+
 				if (!bare) {textcolor(0,1,0);printf("Found at ");textcolor(0,2,0);}
+
 				printf("%s/%s", rep, iterator->d_name);
 				textcolor(0,7,0);printf("\n");
+
 				if (ofpnt != NULL) {
 
 					char towrite[500];
@@ -142,7 +146,6 @@ int ls(char rep[], char* seek, int recursive, int strict, int quiet, int bare, F
 						sprintf(towrite,"%s/%s\n",rep,iterator->d_name);
 						fwrite(towrite,strlen(towrite),1,ofpnt);
 					}
-
 				}
 			}
 		}
@@ -150,14 +153,12 @@ int ls(char rep[], char* seek, int recursive, int strict, int quiet, int bare, F
 		/*
 		  If it's a dir, and if we are in recursive, let's go in it
 		*/
+
 		if ((int)(iterator->d_type) == 4 && recursive == 1) {
 			char nwdir[255];
 			sprintf(nwdir,"%s/%s",rep,iterator->d_name);
-			//textcolor(0,4,0);printf("Opening %s...\n",nwdir);
-			//textcolor(0,7,0);
 			founds += ls(nwdir,seek,1,strict,quiet,bare,ofpnt);
-			//if (q != 0) {printf("-?:%d:increase:%d:?-\n",founds+=q,q);}
-			//printf("Founds %d\n",founds);
+
 			if (founds == 65535) {
 				printf("Ouch, too many stuff founds!\n");
 				return founds;
@@ -169,7 +170,7 @@ int ls(char rep[], char* seek, int recursive, int strict, int quiet, int bare, F
 }
 
 void help() {
-	printf("Mµcro, v0.0.8 ßý Mg, CopyLeft (¢) 2014\n\n");
+	printf("Mµcro, v0.0.9 ßý Mg, CopyRight 2015\n\n");
 	printf("	mucro [-hsnq|filename] {-o filename}\n");
 	printf("\nOptions :\n");
 	printf("    -h | -help 	        : print the option (this)\n");
@@ -190,6 +191,7 @@ struct u_option u_parse_opt(int argc, char * argv[]) {
 	returned.bare = 0;
 	int i = 1;
 	while (i < argc) {
+
 		if (strcmp(argv[i],"-help") == 0 || strcmp(argv[i],"-h") == 0) {help();exit(0);} /* HELP! */
 		if (strcmp(argv[i],"-strict") == 0 || strcmp(argv[i],"-s") == 0) {
 			returned.strict = 1;i++;continue;
