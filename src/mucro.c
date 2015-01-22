@@ -1,7 +1,7 @@
 /* Program ßý Mg. */
 
 /*
-	Mµcro, v0.0.8 ßý Mg, CopyLeft (¢) 2014.
+	Mµcro, v0.0.9 ßý Mg, CopyLeft (¢) 2014.
 */
 
 #include <stdio.h>
@@ -16,12 +16,13 @@ struct u_option {
 	int recursive;
 	int strict;
 	int quiet;
+	int bare;
 	char * ofname;
 	char * filename;
 };
 
 /* LS recursive */
-int ls(char rep[], char* seek, int recursive, int strict, int quiet, FILE * ofpnt);
+int ls(char rep[], char* seek, int recursive, int strict, int quiet, int bare, FILE * ofpnt);
 /* Help, I need somebody. Help */
 void help();
 /* Options parser */
@@ -35,8 +36,6 @@ int main(int argc, char *argv[]) {
 	  browse the package list with aptitude... Use Mµcro, it's easy to use
 	  and very easy to rewrite if you want to modify it.
 	*/
-	/*int arc = 2;
-	return 0; RELIKA */
 
 	if (argc == 1) {printf("No filename given... Type mucro -h for help.\n");exit(0);}
 
@@ -44,14 +43,17 @@ int main(int argc, char *argv[]) {
 	struct u_option camembert;
 	camembert = u_parse_opt(argc, argv);
 	if (strcmp(camembert.filename,"nyan") == 0) {
-		printf("No filename entered, using dummy instead, hehe!\n");
+		printf("No filename entered, using the standard instead, hehe!\n");
 	}
 
 	int founds = 0; /* How many time we do find the file in the directory */
 	textcolor(1,1,0);
-	printf("Looking for %s %s current path...\n",
-		camembert.filename,
-		(camembert.recursive == 1?"from":"in"));
+	if (!camembert.bare) {
+		printf("Looking for %s %s current path...\n",
+			camembert.filename,
+			(camembert.recursive == 1?"from":"in"));
+	}
+
 	textcolor(0,7,0);printf("");
 	FILE * ofpnt = NULL;
 	if (strcmp(camembert.ofname," ") != 0) {
@@ -66,15 +68,28 @@ int main(int argc, char *argv[]) {
 				printf("mucro keeps going, without output file\n");
 			}
 		}
-		fwrite("-Mµcro Output-\n",16,1,ofpnt);
-		char anothertowrite[255];
-		sprintf(anothertowrite,"Mµcro search result for %s :\n",camembert.filename);
-		fwrite(anothertowrite,28+strlen(camembert.filename),1,ofpnt);
+
+		if (!camembert.bare) {
+			fwrite("-Mµcro Output-\n",16,1,ofpnt);
+			char anothertowrite[255];
+			sprintf(anothertowrite,"Mµcro search result for %s :\n",camembert.filename);
+			fwrite(anothertowrite,28+strlen(camembert.filename),1,ofpnt);
+		}
+		else {
+			char anothertowrite[255];
+			sprintf(anothertowrite,"# Mµcro : %s\n",camembert.filename);
+			fwrite(anothertowrite,11+strlen(camembert.filename),1,ofpnt);
+		}
+
 	}
+
 	textcolor(0,7,0);
-	founds = ls(".",camembert.filename,camembert.recursive,camembert.strict,camembert.quiet,ofpnt);
+	founds = ls(".",camembert.filename,camembert.recursive,
+		camembert.strict,camembert.quiet,camembert.bare,ofpnt);
 	textcolor(1,2,0);
-	printf("Found %d times.\n", founds);
+	if (!camembert.bare) {
+		printf("Found %d times.\n", founds);
+	}
 	if (ofpnt != NULL) {
 		char towrite[200];char neonum[6];
 		sprintf(towrite, "Found %d times.\n", founds);
@@ -82,10 +97,11 @@ int main(int argc, char *argv[]) {
 		fwrite(towrite,14+strlen(neonum),1,ofpnt);
 		fclose(ofpnt);
 	}
+
 	textcolor(0,7,0);
 }
 
-int ls(char rep[], char* seek, int recursive, int strict, int quiet, FILE * ofpnt) {
+int ls(char rep[], char* seek, int recursive, int strict, int quiet, int bare, FILE * ofpnt) {
 	/*
 	  LS RECURSIVE FUNCTION
 	*/
@@ -112,26 +128,34 @@ int ls(char rep[], char* seek, int recursive, int strict, int quiet, FILE * ofpn
 			//printf("-increase-\n");
 			++founds;
 			if(!quiet) {
-				textcolor(0,1,0);printf("Found at ");
-				textcolor(0,2,0);printf("%s/%s", rep, iterator->d_name);
+				if (!bare) {textcolor(0,1,0);printf("Found at ");textcolor(0,2,0);}
+				printf("%s/%s", rep, iterator->d_name);
 				textcolor(0,7,0);printf("\n");
 				if (ofpnt != NULL) {
+
 					char towrite[500];
-					sprintf(towrite,"Found at %s/%s\n",rep,iterator->d_name);
-					fwrite(towrite,11+strlen(rep)+strlen(iterator->d_name),1,ofpnt);
+					if (!bare) {
+						sprintf(towrite,"Found at %s/%s\n",rep,iterator->d_name);
+						fwrite(towrite,11+strlen(rep)+strlen(iterator->d_name),1,ofpnt);
+					}
+					else if (bare) {
+						sprintf(towrite,"%s/%s\n",rep,iterator->d_name);
+						fwrite(towrite,strlen(towrite),1,ofpnt);
+					}
+
 				}
 			}
 		}
 
 		/*
-		  If it's a dir, and if we are in recursive, let's go in there
+		  If it's a dir, and if we are in recursive, let's go in it
 		*/
 		if ((int)(iterator->d_type) == 4 && recursive == 1) {
 			char nwdir[255];
 			sprintf(nwdir,"%s/%s",rep,iterator->d_name);
 			//textcolor(0,4,0);printf("Opening %s...\n",nwdir);
 			//textcolor(0,7,0);
-			founds += ls(nwdir,seek,1,strict,quiet,ofpnt);
+			founds += ls(nwdir,seek,1,strict,quiet,bare,ofpnt);
 			//if (q != 0) {printf("-?:%d:increase:%d:?-\n",founds+=q,q);}
 			//printf("Founds %d\n",founds);
 			if (founds == 65535) {
@@ -153,8 +177,9 @@ void help() {
 	printf("    -n | -non-recursive : search only in this directory\n");
 	printf("    -q | -quiet		: Quiet mode. Only print number of matches\n");
 	printf("    -o | -output 	: Save the output to the filename");
+	printf("    -b | -bare		: Print/save only the locations of files");
 	printf("    filename       : name of the file to search\n");
-	printf("If you need some help contact me at mg.minetest@gmail.com\n");
+	printf("If you need some help contact me at mg<dot>minetest<at>gmail<dot>com or open an issue on the bucktracker at http://github.com/LeMagnesium/mucro/issues/ .\n");
 }
 
 struct u_option u_parse_opt(int argc, char * argv[]) {
@@ -162,6 +187,7 @@ struct u_option u_parse_opt(int argc, char * argv[]) {
 	returned.recursive = 1;returned.strict = 0;
 	returned.filename = "nyan";returned.quiet = 0;
 	returned.ofname = " ";
+	returned.bare = 0;
 	int i = 1;
 	while (i < argc) {
 		if (strcmp(argv[i],"-help") == 0 || strcmp(argv[i],"-h") == 0) {help();exit(0);} /* HELP! */
@@ -178,8 +204,11 @@ struct u_option u_parse_opt(int argc, char * argv[]) {
 			if (i == argc-1) {printf("No filename entered for -o... See mucro -h.\n");exit(0);}
 			returned.ofname = argv[++i];i++;continue;
 		}
+		if (strcmp(argv[i],"-b") == 0 || strcmp(argv[i],"-bare") == 0) {
+			returned.bare = 1;i++;continue;
+		}
 		if (argv[i][0] == '-') {
-			printf("Unknown option %s. Enter mucro -h to see help.\n", argv[i]);
+			printf("Unknown option %s. Enter mucro -h to see available help.\n", argv[i]);
 			exit(0);
 		}
 		else {

@@ -4,7 +4,7 @@ Mµcro
 A simple colored fileseeker for GNU/Linux
 
 Use :
-	mucro [-snq|filename] [-h] {-o filename}
+	mucro [-snqb|filename] [-h] {-o filename}
 
 
 Mucro is a simple colored fileseeker for GNU/Linux, designed to be used
