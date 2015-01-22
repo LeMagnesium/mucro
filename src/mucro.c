@@ -1,7 +1,7 @@
 /* Program ßý Mg. */
 
 /*
-	Mµcro, v0.0.9 ßý Mg, CopyLeft (¢) 2014.
+	Mµcro, v0.0.9 ßý Mg, CopyRight 2015.
 	License : GPLv2 and further
 */
 
