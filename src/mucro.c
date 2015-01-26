@@ -177,8 +177,8 @@ void help() {
 	printf("    -s | -strict        : search only the exact string\n");
 	printf("    -n | -non-recursive : search only in this directory\n");
 	printf("    -q | -quiet		: Quiet mode. Only print number of matches\n");
-	printf("    -o | -output 	: Save the output to the filename");
-	printf("    -b | -bare		: Print/save only the locations of files");
+	printf("    -o | -output 	: Save the output to the filename\n");
+	printf("    -b | -bare		: Print/save only the locations of files\n");
 	printf("    filename       : name of the file to search\n");
 	printf("If you need some help contact me at mg<dot>minetest<at>gmail<dot>com or open an issue on the bucktracker at http://github.com/LeMagnesium/mucro/issues/ .\n");
 }

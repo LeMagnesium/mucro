@@ -9,7 +9,8 @@ all:
 	gcc ./src/mucro.c -o ./mucro
 
 install: all
-	sudo cp ./mucro /usr/bin
+	chmod a+x ./mucro
+	sudo cp ./mucro /usr/local/bin
 
 uninstall: all
 	sudo rm /usr/bin/mucro
