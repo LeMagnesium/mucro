@@ -79,7 +79,7 @@ int main(int argc, char *argv[]) {
 		else {
 			char anothertowrite[255];
 			sprintf(anothertowrite,"# Mµcro : %s\n",camembert.filename);
-			fwrite(anothertowrite,11+strlen(camembert.filename),1,ofpnt);
+			fwrite(anothertowrite,12+strlen(camembert.filename),1,ofpnt);
 		}
 
 	}
@@ -91,14 +91,14 @@ int main(int argc, char *argv[]) {
 	textcolor(1,2,0);
 	if (!camembert.bare) {
 		printf("Found %d times.\n", founds);
-	}
 
-	if (ofpnt != NULL) {
-		char towrite[200];char neonum[6];
-		sprintf(towrite, "Found %d times.\n", founds);
-		sprintf(neonum, "%d", founds);
-		fwrite(towrite,14+strlen(neonum),1,ofpnt);
-		fclose(ofpnt);
+		if (ofpnt != NULL) {
+			char towrite[200];char neonum[6];
+			sprintf(towrite, "Found %d times.\n", founds);
+			sprintf(neonum, "%d", founds);
+			fwrite(towrite,14+strlen(neonum),1,ofpnt);
+			fclose(ofpnt);
+		}
 	}
 
 	textcolor(0,7,0);

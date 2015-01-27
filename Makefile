@@ -16,6 +16,7 @@ uninstall: all
 	sudo rm /usr/bin/mucro
 clear:
 	rm -f ./libutil.o
+	rm -f ./mucro
 clearsrc:
 	echo "WARNING: You need the sources to compile again. Download/git pull sources to get them back."
 	rm -f libutil.*
