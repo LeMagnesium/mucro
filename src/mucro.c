@@ -1,7 +1,7 @@
 /* Program ßý Mg. */
 
 /*
-	Mµcro, v0.0.9 ßý Mg, CopyRight 2015.
+	Mµcro, v0.0.10 ßý Mg, CopyRight 2015.
 	License : GPLv2 and further
 */
 
@@ -18,12 +18,15 @@ struct u_option {
 	int strict;
 	int quiet;
 	int bare;
+	int hidden;
 	char * ofname;
+	FILE * stdout;
 	char * filename;
+	char * rootpath;
 };
 
 /* LS recursive */
-int ls(char rep[], char* seek, int recursive, int strict, int quiet, int bare, FILE * ofpnt);
+int ls(char rep[], struct u_option camembert);
 /* Help, I need somebody. Help */
 void help();
 /* Options parser */
@@ -48,12 +51,6 @@ int main(int argc, char *argv[]) {
 	}
 
 	int founds = 0; /* How many time we do find the file in the directory */
-	textcolor(1,1,0);
-	if (!camembert.bare) {
-		printf("Looking for %s %s current path...\n",
-			camembert.filename,
-			(camembert.recursive == 1?"from":"in"));
-	}
 
 	textcolor(0,7,0);printf("");
 	FILE * ofpnt = NULL;
@@ -84,9 +81,21 @@ int main(int argc, char *argv[]) {
 
 	}
 
+	textcolor(1,1,0);
+	if (!camembert.bare) {
+		printf("Looking for %s %s %s...\n",
+			camembert.filename,
+			(camembert.recursive == 1?"from":"in"),
+			(strcmp(camembert.rootpath," ") == 0?"current path":camembert.rootpath));
+	}
 	textcolor(0,7,0);
-	founds = ls(".",camembert.filename,camembert.recursive,
-		camembert.strict,camembert.quiet,camembert.bare,ofpnt);
+	camembert.stdout = ofpnt;
+	char rep[255] = ".";
+	char * pntrep = rep;
+	if (!strcmp(camembert.rootpath, " ") == 0) {
+		pntrep = camembert.rootpath;
+	}
+	founds = ls(pntrep, camembert);
 
 	textcolor(1,2,0);
 	if (!camembert.bare) {
@@ -104,10 +113,23 @@ int main(int argc, char *argv[]) {
 	textcolor(0,7,0);
 }
 
-int ls(char rep[], char* seek, int recursive, int strict, int quiet, int bare, FILE * ofpnt) {
+
+//int ls(char rep[], char* seek, int recursive, int strict, int quiet, int bare, FILE * ofpnt);
+int ls(char rep[], struct u_option camembert) {
 	/*
 	  LS RECURSIVE FUNCTION
 	*/
+	
+	char * seek = camembert.filename;
+	char * rootpath = camembert.rootpath;
+	int bare = camembert.bare;
+	int recursive = camembert.recursive;
+	int strict = camembert.strict;
+	int quiet = camembert.quiet;
+	FILE * stdout = camembert.stdout;
+	int hidden = camembert.hidden;
+	
+	//printf("%s\n",rep);
 	int founds = 0;
 	DIR *directory = opendir(rep);
 	if (directory == NULL) {
@@ -122,6 +144,7 @@ int ls(char rep[], char* seek, int recursive, int strict, int quiet, int bare, F
 	while ((iterator = readdir(directory)) != NULL) {
 		if (strcmp(iterator->d_name,".") == 0) {continue;}
 		if (strcmp(iterator->d_name,"..") == 0) {continue;}
+		if (iterator->d_name[0] == '.' && camembert.hidden == 0) {continue;}
 
 		if (
 		(strstr(iterator->d_name,seek) != NULL && strict == 0)||
@@ -135,16 +158,16 @@ int ls(char rep[], char* seek, int recursive, int strict, int quiet, int bare, F
 				printf("%s/%s", rep, iterator->d_name);
 				textcolor(0,7,0);printf("\n");
 
-				if (ofpnt != NULL) {
+				if (stdout != NULL) {
 
 					char towrite[500];
 					if (!bare) {
 						sprintf(towrite,"Found at %s/%s\n",rep,iterator->d_name);
-						fwrite(towrite,11+strlen(rep)+strlen(iterator->d_name),1,ofpnt);
+						fwrite(towrite,11+strlen(rep)+strlen(iterator->d_name),1,stdout);
 					}
 					else if (bare) {
 						sprintf(towrite,"%s/%s\n",rep,iterator->d_name);
-						fwrite(towrite,strlen(towrite),1,ofpnt);
+						fwrite(towrite,strlen(towrite),1,stdout);
 					}
 				}
 			}
@@ -157,7 +180,7 @@ int ls(char rep[], char* seek, int recursive, int strict, int quiet, int bare, F
 		if ((int)(iterator->d_type) == 4 && recursive == 1) {
 			char nwdir[255];
 			sprintf(nwdir,"%s/%s",rep,iterator->d_name);
-			founds += ls(nwdir,seek,1,strict,quiet,bare,ofpnt);
+			founds += ls(nwdir, camembert);
 
 			if (founds == 65535) {
 				printf("Ouch, too many stuff founds!\n");
@@ -170,7 +193,7 @@ int ls(char rep[], char* seek, int recursive, int strict, int quiet, int bare, F
 }
 
 void help() {
-	printf("Mµcro, v0.0.9 ßý Mg, CopyRight 2015\n\n");
+	printf("Mµcro, v0.0.10 ßý Mg, CopyRight 2015\n\n");
 	printf("	mucro [-hsnq|filename] {-o filename}\n");
 	printf("\nOptions :\n");
 	printf("    -h | -help 	        : print the option (this)\n");
@@ -179,6 +202,8 @@ void help() {
 	printf("    -q | -quiet		: Quiet mode. Only print number of matches\n");
 	printf("    -o | -output 	: Save the output to the filename\n");
 	printf("    -b | -bare		: Print/save only the locations of files\n");
+	printf("    -r | -rootpath	: Directory's path to start searching from\n");
+	printf("    -t | -hidden	: Seach even in hidden directories (which their names start by '.')\n");
 	printf("    filename       : name of the file to search\n");
 	printf("If you need some help contact me at mg<dot>minetest<at>gmail<dot>com or open an issue on the bucktracker at http://github.com/LeMagnesium/mucro/issues/ .\n");
 }
@@ -189,6 +214,9 @@ struct u_option u_parse_opt(int argc, char * argv[]) {
 	returned.filename = "nyan";returned.quiet = 0;
 	returned.ofname = " ";
 	returned.bare = 0;
+	returned.stdout = NULL;
+	returned.rootpath = " ";
+	returned.hidden = 0;
 	int i = 1;
 	while (i < argc) {
 
@@ -208,6 +236,12 @@ struct u_option u_parse_opt(int argc, char * argv[]) {
 		}
 		if (strcmp(argv[i],"-b") == 0 || strcmp(argv[i],"-bare") == 0) {
 			returned.bare = 1;i++;continue;
+		}
+		if (strcmp(argv[i],"-r") == 0 || strcmp(argv[i],"-root") == 0) {
+			returned.rootpath = argv[++i];i++;continue;
+		}
+		if (strcmp(argv[i],"-t") == 0 || strcmp(argv[i],"-hidden") == 0) {
+			returned.hidden = 1;i++;continue;
 		}
 		if (argv[i][0] == '-') {
 			printf("Unknown option %s. Enter mucro -h to see available help.\n", argv[i]);
