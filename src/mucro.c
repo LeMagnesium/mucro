@@ -1,7 +1,7 @@
 /* Program ßý Mg. */
 
 /*
-	Mµcro, v0.0.10 ßý Mg, CopyRight 2015.
+	Mµcro, v0.0.11 ßý Mg, CopyRight 2015.
 	License : GPLv2 and further
 */
 
@@ -19,6 +19,7 @@ struct u_option {
 	int quiet;
 	int bare;
 	int hidden;
+	int errverb;
 	char * ofname;
 	FILE * stdout;
 	char * filename;
@@ -83,10 +84,12 @@ int main(int argc, char *argv[]) {
 
 	textcolor(1,1,0);
 	if (!camembert.bare) {
-		printf("Looking for %s %s %s...\n",
+		printf("Looking for %s %s %s...",
 			camembert.filename,
 			(camembert.recursive == 1?"from":"in"),
 			(strcmp(camembert.rootpath," ") == 0?"current path":camembert.rootpath));
+		textcolor(0,7,0);
+		printf("\n");
 	}
 	textcolor(0,7,0);
 	camembert.stdout = ofpnt;
@@ -129,22 +132,21 @@ int ls(char rep[], struct u_option camembert) {
 	int quiet = camembert.quiet;
 	FILE * stdout = camembert.stdout;
 	int hidden = camembert.hidden;
+	int errverb = camembert.errverb;
 	
-	if (!(rep[strlen(rep)-1] == '/')) {
-		sprintf(rep,"%s/",rep);
-	}
-	
-	//printf("%s\n",rep);
 	int founds = 0;
 	DIR *directory = opendir(rep);
 	if (directory == NULL) {
 		char errorstr[500];
-		textcolor(0,7,0);
+		//textcolor(0,7,0);
 		sprintf(errorstr, "Error with %s ", rep);
-		perror(errorstr);
-		textcolor(0,7,0);return founds;
+		if(!errverb == 0) {
+			perror(errorstr);
+		}
+		//textcolor(0,7,0);
+		return founds;
 	}
-
+	
 	struct dirent *iterator;
 	while ((iterator = readdir(directory)) != NULL) {
 		if (strcmp(iterator->d_name,".") == 0) {continue;}
@@ -160,18 +162,18 @@ int ls(char rep[], struct u_option camembert) {
 
 				if (!bare) {textcolor(0,1,0);printf("Found at ");textcolor(0,2,0);}
 
-				printf("%s%s", rep, iterator->d_name);
+				printf("%s/%s", rep, iterator->d_name);
 				textcolor(0,7,0);printf("\n");
 
 				if (stdout != NULL) {
 
 					char towrite[500];
 					if (!bare) {
-						sprintf(towrite,"Found at %s%s\n",rep,iterator->d_name);
+						sprintf(towrite,"Found at %s/%s\n",rep,iterator->d_name);
 						fwrite(towrite,11+strlen(rep)+strlen(iterator->d_name),1,stdout);
 					}
 					else if (bare) {
-						sprintf(towrite,"%s%s\n",rep,iterator->d_name);
+						sprintf(towrite,"%s/%s\n",rep,iterator->d_name);
 						fwrite(towrite,strlen(towrite),1,stdout);
 					}
 				}
@@ -184,7 +186,7 @@ int ls(char rep[], struct u_option camembert) {
 
 		if ((int)(iterator->d_type) == 4 && recursive == 1) {
 			char nwdir[255];
-			sprintf(nwdir,"%s%s",rep,iterator->d_name);
+			sprintf(nwdir,"%s/%s",rep,iterator->d_name);
 			founds += ls(nwdir, camembert);
 
 			if (founds == 65535) {
@@ -198,7 +200,7 @@ int ls(char rep[], struct u_option camembert) {
 }
 
 void help() {
-	printf("Mµcro, v0.0.10 ßý Mg, CopyRight 2015\n\n");
+	printf("Mµcro, v0.0.11 ßý Mg, CopyRight 2015\n\n");
 	printf("	mucro [-hsnq|filename] {-o filename}\n");
 	printf("\nOptions :\n");
 	printf("    -h | -help 	        : print the option (this)\n");
@@ -207,8 +209,9 @@ void help() {
 	printf("    -q | -quiet		: Quiet mode. Only print number of matches\n");
 	printf("    -o | -output 	: Save the output to the filename\n");
 	printf("    -b | -bare		: Print/save only the locations of files\n");
-	printf("    -r | -rootpath	: Directory's path to start searching from\n");
+	printf("    -r | -root		: Directory's path to start searching from\n");
 	printf("    -t | -hidden	: Seach even in hidden directories (which their names start by '.')\n");
+	printf("    -v | -verbose	: Show errors in stdout\n");
 	printf("    filename       : name of the file to search\n");
 	printf("If you need some help contact me at mg<dot>minetest<at>gmail<dot>com or open an issue on the bucktracker at http://github.com/LeMagnesium/mucro/issues/ .\n");
 }
@@ -219,6 +222,7 @@ struct u_option u_parse_opt(int argc, char * argv[]) {
 	returned.filename = "nyan";returned.quiet = 0;
 	returned.ofname = " ";
 	returned.bare = 0;
+	returned.errverb = 0;
 	returned.stdout = NULL;
 	returned.rootpath = " ";
 	returned.hidden = 0;
@@ -245,6 +249,9 @@ struct u_option u_parse_opt(int argc, char * argv[]) {
 		if (strcmp(argv[i],"-r") == 0 || strcmp(argv[i],"-root") == 0) {
 			returned.rootpath = argv[++i];i++;continue;
 		}
+		if (strcmp(argv[i],"-v") == 0 || strcmp(argv[i],"-verbose") == 0) {
+			returned.errverb = 1;i++;continue;
+		}
 		if (strcmp(argv[i],"-t") == 0 || strcmp(argv[i],"-hidden") == 0) {
 			returned.hidden = 1;i++;continue;
 		}
@@ -256,5 +263,6 @@ struct u_option u_parse_opt(int argc, char * argv[]) {
 			returned.filename = argv[i];i++;continue;
 		}
 	}
+	
 	return returned;
 }
