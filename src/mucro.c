@@ -95,6 +95,7 @@ int main(int argc, char *argv[]) {
 	if (!strcmp(camembert.rootpath, " ") == 0) {
 		pntrep = camembert.rootpath;
 	}
+	
 	founds = ls(pntrep, camembert);
 
 	textcolor(1,2,0);
@@ -129,6 +130,10 @@ int ls(char rep[], struct u_option camembert) {
 	FILE * stdout = camembert.stdout;
 	int hidden = camembert.hidden;
 	
+	if (!(rep[strlen(rep)-1] == '/')) {
+		sprintf(rep,"%s/",rep);
+	}
+	
 	//printf("%s\n",rep);
 	int founds = 0;
 	DIR *directory = opendir(rep);
@@ -155,18 +160,18 @@ int ls(char rep[], struct u_option camembert) {
 
 				if (!bare) {textcolor(0,1,0);printf("Found at ");textcolor(0,2,0);}
 
-				printf("%s/%s", rep, iterator->d_name);
+				printf("%s%s", rep, iterator->d_name);
 				textcolor(0,7,0);printf("\n");
 
 				if (stdout != NULL) {
 
 					char towrite[500];
 					if (!bare) {
-						sprintf(towrite,"Found at %s/%s\n",rep,iterator->d_name);
+						sprintf(towrite,"Found at %s%s\n",rep,iterator->d_name);
 						fwrite(towrite,11+strlen(rep)+strlen(iterator->d_name),1,stdout);
 					}
 					else if (bare) {
-						sprintf(towrite,"%s/%s\n",rep,iterator->d_name);
+						sprintf(towrite,"%s%s\n",rep,iterator->d_name);
 						fwrite(towrite,strlen(towrite),1,stdout);
 					}
 				}
@@ -179,7 +184,7 @@ int ls(char rep[], struct u_option camembert) {
 
 		if ((int)(iterator->d_type) == 4 && recursive == 1) {
 			char nwdir[255];
-			sprintf(nwdir,"%s/%s",rep,iterator->d_name);
+			sprintf(nwdir,"%s%s",rep,iterator->d_name);
 			founds += ls(nwdir, camembert);
 
 			if (founds == 65535) {
