@@ -68,6 +68,7 @@ int main(int argc, char *argv[]) {
 			}
 		}
 
+		fseek(ofpnt, SEEK_END, 0);
 		if (!camembert.bare) {
 			fwrite("-Mµcro Output-\n",16,1,ofpnt);
 			char anothertowrite[255];
@@ -133,6 +134,7 @@ int ls(char rep[], struct u_option camembert) {
 	FILE * stdout = camembert.stdout;
 	int hidden = camembert.hidden;
 	int errverb = camembert.errverb;
+	int aesthic = 0;
 	
 	int founds = 0;
 	DIR *directory = opendir(rep);
@@ -146,7 +148,11 @@ int ls(char rep[], struct u_option camembert) {
 		//textcolor(0,7,0);
 		return founds;
 	}
-	
+
+	if (rep[strlen(rep)-1] == '/') {
+		aesthic = 1;
+	}
+
 	struct dirent *iterator;
 	while ((iterator = readdir(directory)) != NULL) {
 		if (strcmp(iterator->d_name,".") == 0) {continue;}
@@ -157,23 +163,24 @@ int ls(char rep[], struct u_option camembert) {
 		(strstr(iterator->d_name,seek) != NULL && strict == 0)||
 		(strcmp(iterator->d_name,seek) == 0 && strict == 1)
 		) {
+
 			++founds;
 			if(!quiet) {
 
 				if (!bare) {textcolor(0,1,0);printf("Found at ");textcolor(0,2,0);}
 
-				printf("%s/%s", rep, iterator->d_name);
+				printf("%s%s%s", rep, (aesthic == 0?"/":""), iterator->d_name);
 				textcolor(0,7,0);printf("\n");
 
 				if (stdout != NULL) {
 
 					char towrite[500];
 					if (!bare) {
-						sprintf(towrite,"Found at %s/%s\n",rep,iterator->d_name);
+						sprintf(towrite,"Found at %s%s%s\n",rep, (aesthic == 0?"/":""),iterator->d_name);
 						fwrite(towrite,11+strlen(rep)+strlen(iterator->d_name),1,stdout);
 					}
 					else if (bare) {
-						sprintf(towrite,"%s/%s\n",rep,iterator->d_name);
+						sprintf(towrite,"%s%s%s\n",rep, (aesthic == 0?"/":""), iterator->d_name);
 						fwrite(towrite,strlen(towrite),1,stdout);
 					}
 				}
@@ -186,13 +193,8 @@ int ls(char rep[], struct u_option camembert) {
 
 		if ((int)(iterator->d_type) == 4 && recursive == 1) {
 			char nwdir[255];
-			sprintf(nwdir,"%s/%s",rep,iterator->d_name);
+			sprintf(nwdir,"%s%s%s",rep,(rep[strlen(rep)-1] == '/'?"":"/"),iterator->d_name);
 			founds += ls(nwdir, camembert);
-
-			if (founds == 65535) {
-				printf("Ouch, too many stuff founds!\n");
-				return founds;
-			}
 		}
 	}
 	closedir(directory);
