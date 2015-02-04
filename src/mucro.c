@@ -133,8 +133,8 @@ int ls(char rep[], struct u_option camembert) {
 		if(iterator->d_name[0] == '.' && camembert.hidden == 0) {continue;}
 
 		// TODO: Use here future regex_analyzer function
-		if((strstr(iterator->d_name,camembert.filename) != NULL && camembert.strict == 0)
-		|| (regex_cmp(camembert.filename,iterator->d_name) == 1 && camembert.strict == 1)) {
+		//if((regex_find(camembert.filename,iterator->d_name) == 1 && camembert.strict == 0)
+		if(regex_cmp(camembert.filename,iterator->d_name) == 1) {
 
 			++founds;
 			if(!camembert.quiet) {
