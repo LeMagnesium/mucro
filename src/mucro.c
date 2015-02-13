@@ -2,7 +2,7 @@
 
 /*
 	Mµcro, v0.0.12 ßý Mg, CopyRight 2015.
-	License : GPLv2 and further
+	License : GPLv3 and further
 */
 
 #include <stdio.h>
@@ -10,7 +10,7 @@
 #include <string.h>
 #include <dirent.h>
 #include <errno.h>
-#include "regex.h"
+#include <regex.h>
 
 /* µ_OPTIONS STRUCT */
 struct u_option {
@@ -24,6 +24,7 @@ struct u_option {
 	char * filename;
 	char * rootpath;
 	FILE * stdout;
+	regex_t regex;
 };
 
 
@@ -40,8 +41,12 @@ int main(int argc, char *argv[]) {
 	/* Option parse */
 	struct u_option camembert;
 	camembert = u_parse_opt(argc, argv);
-	if(strcmp(camembert.filename,"nyan") == 0) {
+	if (strcmp(camembert.filename,"nyan") == 0) {
 		printf("No filename entered, using the standard instead, hehe!\n");
+		if (camembert.strict == 0)
+		{
+			regcomp(&camembert.regex, "nyan", REG_NOSUB | REG_EXTENDED);
+		}
 	}
 
 	int founds = 0;
@@ -106,7 +111,14 @@ int main(int argc, char *argv[]) {
 		}
 	}
 
+	if (camembert.strict == 0)
+	{
+		/* Liberating regex's memory */
+		regfree (&camembert.regex);
+	}
+
 	textcolor(0,7,0);
+	return (EXIT_SUCCESS);
 }
 
 /* FileSystem parser function, aka. LS Recursive */
@@ -134,7 +146,16 @@ int ls(char rep[], struct u_option camembert) {
 
 		// TODO: Use here future regex_analyzer function
 		//if((regex_find(camembert.filename,iterator->d_name) == 1 && camembert.strict == 0)
-		if(regex_cmp(camembert.filename,iterator->d_name) == 1) {
+		//if(regex_cmp(camembert.filename,iterator->d_name) == 1) {
+		int matching = 1;
+		if (camembert.strict == 0)
+		{
+			matching = regexec (&camembert.regex, iterator->d_name, 0, NULL, 0);
+		}
+
+		if (camembert.strict == 1 && (strcmp(camembert.filename, iterator->d_name) == 0)
+		|| (camembert.strict == 0 && matching == 0))
+		{
 
 			++founds;
 			if(!camembert.quiet) {
@@ -223,6 +244,7 @@ struct u_option u_parse_opt(int argc, char * argv[]) {
 			if (i == argc-1) {printf("No path given with -r... See mucro -h.\n");exit(0);}
 			returned.rootpath = argv[++i];i++;continue;
 		}
+
 		if(strcmp(argv[i],"-o") == 0 || strcmp(argv[i],"-output") == 0) {
 			if (i == argc-1) {printf("No filename entered for -o... See mucro -h.\n");exit(0);}
 			returned.ofname = argv[++i];i++;continue;
@@ -238,6 +260,18 @@ struct u_option u_parse_opt(int argc, char * argv[]) {
 		}
 	}
 	
+	if (returned.strict == 0)
+	{
+		/* If strict mod is turned off, defining regex */
+		int err;
+		err = regcomp (&returned.regex, returned.filename,REG_NOSUB | REG_EXTENDED);
+		if (err != 0)
+		{
+			printf("\"%s\" is not a valid regex! Terminated.\n",returned.filename);
+			exit(1);
+		}
+	}
+
 	return returned;
 }
 
