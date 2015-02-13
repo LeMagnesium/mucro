@@ -17,5 +17,4 @@ X has to be up. That's why it has been done : easy to install, easy to use,
 easy to modify, and useful.
 
 TODO:
-	Create the same program working for Windows.
-	Introduce regex's handlers
+	Make the program work using Windows (and BSD).

@@ -1,7 +1,7 @@
 /* Program ßý Mg. */
 
 /*
-	Mµcro, v0.0.12 ßý Mg, CopyRight 2015.
+	Mµcro, v0.1 ßý Mg, CopyRight 2015.
 	License : GPLv3 and further
 */
 
@@ -11,6 +11,7 @@
 #include <dirent.h>
 #include <errno.h>
 #include <regex.h>
+
 
 /* µ_OPTIONS STRUCT */
 struct u_option {
@@ -28,6 +29,7 @@ struct u_option {
 };
 
 
+/* Prototypes */
 int ls(char rep[], struct u_option camembert);			/* LS recursive					*/
 void help();											/* Help, I need somebody. Help 	*/
 struct u_option u_parse_opt(int argc, char *argv[]);	/* Options parser				*/
@@ -195,11 +197,11 @@ int ls(char rep[], struct u_option camembert) {
 
 /* Function printing help line, it seems logic */
 void help() {
-	printf("Mµcro, v0.0.12 ßý Mg, CopyRight 2015\n\n");
+	printf("Mµcro, v0.1 ßý Mg, CopyRight 2015\n\n");
 	printf("	mucro [-hsnq|filename] {-o filename}\n");
 	printf("\nOptions :\n");
 	printf("    -h | -help 	        : print the option (this)\n");
-	printf("    -s | -strict        : search only the exact string\n");
+	printf("    -s | -strict        : search only the exact string, don't use regex\n");
 	printf("    -n | -non-recursive : search only in this directory\n");
 	printf("    -q | -quiet		: Quiet mode. Only print number of matches\n");
 	printf("    -o | -output 	: Save the output to the filename\n");
