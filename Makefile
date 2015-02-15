@@ -1,23 +1,19 @@
-VERSION = 0.0.9
 all:
-	# Clean up the directories
-	# rm -R bin/ obj/
-	# If they do not exist, it creates them
-	# TODO: Use a if
-	# mkdir bin/ obj/
-	gcc ./src/mucro.c -o ./mucro
+	@if [ ! -e ./bin/ ]; then mkdir ./bin/; fi
+	@gcc ./src/mucro.c -o ./bin/mucro
 
 install: all
-	chmod a+x ./mucro
-	sudo cp ./mucro /usr/local/bin
+	@chmod a+x ./bin/mucro
+	@# Copy for bash
+	@sudo cp ./bin/mucro /usr/local/bin/
+	@# Copy for sh
+	@sudo cp ./bin/mucro /usr/bin/
 
-uninstall: all
-	sudo rm /usr/bin/mucro
+uninstall:
+	@if [ -e /usr/local/bin/mucro ]; then sudo rm /usr/local/bin/mucro; fi
+	@if [ -e /usr/bin/mucro ]; then sudo rm /usr/bin/mucro; fi
 clear:
-	rm -f ./mucro
+	@if [ -e ./bin ] && [ -x ./bin/mucro ]; then rm -r bin/ ; fi
 clearsrc:
-	echo "WARNING: You need the sources to compile again. Download/git pull sources to get them back."
-	rm -rf src
-scratch:
-	rm -f ./mucro
-
+	@echo "WARNING: You need the sources to compile again. Download/git pull sources to get them back."
+	@if [ -e ./src/ ]; then rm -r src; fi

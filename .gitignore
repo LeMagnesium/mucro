@@ -1,4 +1,4 @@
 # Ignored files
-mucro
+bin/
 *.o
 *~
