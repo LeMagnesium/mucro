@@ -19,6 +19,7 @@ struct u_option {
 	int strict;
 	int quiet;
 	int bare;
+	int nocolor;
 	int hidden;
 	int errverb;
 	char * ofname;
@@ -33,7 +34,7 @@ struct u_option {
 int ls(char rep[], struct u_option camembert);			/* LS recursive					*/
 void help();											/* Help, I need somebody. Help 	*/
 struct u_option u_parse_opt(int argc, char *argv[]);	/* Options parser				*/
-void textcolor(int attr, int fgcolor, int bgcolor);		/* Color the text				*/
+void textcolor(int attr, int fgcolor, int bgcolor, int disabled);		/* Color the text				*/
 
 /* Main function */
 int main(int argc, char *argv[]) {
@@ -44,7 +45,7 @@ int main(int argc, char *argv[]) {
 	struct u_option camembert;
 	camembert = u_parse_opt(argc, argv);
 	if (strcmp(camembert.filename,"nyan") == 0) {
-		printf("No filename entered, using the standard instead, hehe!\n");
+		printf("No filename entered, using the default one instead, hehe!\n");
 		if (camembert.strict == 0)
 		{
 			regcomp(&camembert.regex, "nyan", REG_NOSUB | REG_EXTENDED);
@@ -53,13 +54,13 @@ int main(int argc, char *argv[]) {
 
 	int founds = 0;
 
-	textcolor(0,7,0);printf("");
+	textcolor(0,7,0,camembert.nocolor);printf("");
 	FILE * ofpnt = NULL;
 	if(strcmp(camembert.ofname," ") != 0) {
 		ofpnt = fopen(camembert.ofname,"r+");
 		if(ofpnt == NULL) {
 			char errstr[500];
-			textcolor(0,7,0);
+			textcolor(0,7,0,camembert.nocolor);
 			sprintf(errstr,"Error with %s",camembert.ofname);
 			perror(errstr);
 			printf("mucro keeps going, without output file\n");
@@ -87,20 +88,20 @@ int main(int argc, char *argv[]) {
 		pntrep = camembert.rootpath;
 	}
 
-	textcolor(1,1,0);
+	textcolor(1,1,0,camembert.nocolor);
 	if(!camembert.bare) {
 		printf("Looking for '%s' %s %s ...",
 			camembert.filename,
 			(camembert.recursive == 1?"from":"in"),
 			(strcmp(camembert.rootpath," ") == 0?"current path":camembert.rootpath));
-		textcolor(0,7,0);
+		textcolor(0,7,0,camembert.nocolor);
 		printf("\n");
 	}
-	textcolor(0,7,0);
-	
+	textcolor(0,7,0,camembert.nocolor);
+
 	founds = ls(pntrep, camembert);
 
-	textcolor(1,2,0);
+	textcolor(1,2,0,camembert.nocolor);
 	if(!camembert.bare) {
 		printf("Found %d times.\n", founds);
 
@@ -119,7 +120,7 @@ int main(int argc, char *argv[]) {
 		regfree (&camembert.regex);
 	}
 
-	textcolor(0,7,0);
+	textcolor(0,7,0,camembert.nocolor);
 	return (EXIT_SUCCESS);
 }
 
@@ -161,14 +162,14 @@ int ls(char rep[], struct u_option camembert) {
 
 			++founds;
 			if(!camembert.quiet) {
-				if(!camembert.bare) {textcolor(0,1,0);printf("Found at ");textcolor(0,2,0);}
+				if(!camembert.bare) {textcolor(0,1,0,camembert.nocolor);printf("Found at ");textcolor(0,2,0,camembert.nocolor);}
 
 				printf("%s%s%s", rep, (rep[strlen(rep)-1] == '/'?"":"/"), iterator->d_name);
-				textcolor(0,7,0);
+				textcolor(0,7,0,camembert.nocolor);
 				printf("\n");
 
 				if(camembert.stdout != NULL) {
-					
+
 					char towrite[500];
 					if(!camembert.bare) {
 						sprintf(towrite,"Found at %s%s%s\n",rep, (rep[strlen(rep)-1] == '/'?"":"/"),iterator->d_name);
@@ -208,6 +209,7 @@ void help() {
 	printf("    -b | -bare		: Print/save only the locations of files\n");
 	printf("    -r | -root		: Directory's path to start searching from\n");
 	printf("    -t | -hidden	: Seach even in hidden directories (which their names start by '.')\n");
+	printf("    -c | -nocolor	: Disables colors (always turned on if using windows)\n");
 	printf("    -v | -verbose	: Show errors in stdout\n");
 	printf("    filename       : name of the file to search\n");
 	printf("If you need some help contact me at mg<dot>minetest<at>gmail<dot>com or open an issue on the bucktracker at http://github.com/LeMagnesium/mucro/issues/ .\n");
@@ -223,6 +225,11 @@ struct u_option u_parse_opt(int argc, char * argv[]) {
 	returned.recursive 	= 1;
 	returned.quiet 		= 0;
 	returned.bare 		= 0;
+#ifndef WIN32
+	returned.nocolor	= 0;
+#else
+	returned.nocolor	= 1;
+#endif // If using or not windows
 	returned.hidden 	= 0;
 	returned.errverb 	= 0;
 	returned.filename 	= "nyan";
@@ -230,7 +237,7 @@ struct u_option u_parse_opt(int argc, char * argv[]) {
 	returned.rootpath 	= " ";
 	returned.stdout 	= NULL;
 
-	
+
 	int i = 1;
 	while(i < argc) {
 
@@ -241,7 +248,8 @@ struct u_option u_parse_opt(int argc, char * argv[]) {
 		if(strcmp(argv[i],"-b") == 0 || strcmp(argv[i],"-bare") == 0) 			{returned.bare = 1;i++;continue;}
 		if(strcmp(argv[i],"-v") == 0 || strcmp(argv[i],"-verbose") == 0) 		{returned.errverb = 1;i++;continue;}
 		if(strcmp(argv[i],"-t") == 0 || strcmp(argv[i],"-hidden") == 0) 		{returned.hidden = 1;i++;continue;}
-		
+		if(strcmp(argv[i],"-c") == 0 || strcmp(argv[i],"-nocolor") == 0) 		{returned.nocolor = 1;i++;continue;}
+
 		if(strcmp(argv[i],"-r") == 0 || strcmp(argv[i],"-root") == 0) {
 			if (i == argc-1) {printf("No path given with -r... See mucro -h.\n");exit(0);}
 			returned.rootpath = argv[++i];i++;continue;
@@ -251,17 +259,17 @@ struct u_option u_parse_opt(int argc, char * argv[]) {
 			if (i == argc-1) {printf("No filename entered for -o... See mucro -h.\n");exit(0);}
 			returned.ofname = argv[++i];i++;continue;
 		}
-		
+
 		if(argv[i][0] == '-') {
 			printf("Unknown option %s. Enter mucro -h to see available help.\n", argv[i]);
 			exit(0);
 		}
-		
+
 		else {
 			returned.filename = argv[i];i++;continue;
 		}
 	}
-	
+
 	if (returned.strict == 0)
 	{
 		/* If strict mod is turned off, defining regex */
@@ -278,7 +286,8 @@ struct u_option u_parse_opt(int argc, char * argv[]) {
 }
 
 /* Text's coloring function */
-void textcolor(int attr, int fgcolor, int bgcolor) {
+void textcolor(int attr, int fgcolor, int bgcolor, int disabled) {
+	if (disabled == 1) {return;}
 	char colcomm[13];
 	sprintf(colcomm,"%c[%d;%d;%dm",0x1B, attr, fgcolor+30, bgcolor+40);
 	printf("%s", colcomm);
