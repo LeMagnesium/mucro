@@ -11,6 +11,7 @@
 #include <dirent.h>
 #include <errno.h>
 #include <regex.h>
+#include <time.h>
 
 
 /* µ_OPTIONS STRUCT */
@@ -31,10 +32,11 @@ struct u_option {
 
 
 /* Prototypes */
-int ls(char rep[], struct u_option camembert);			/* LS recursive					*/
-void help();											/* Help, I need somebody. Help 	*/
-struct u_option u_parse_opt(int argc, char *argv[]);	/* Options parser				*/
-void textcolor(int attr, int fgcolor, int bgcolor, int disabled);		/* Color the text				*/
+int ls(char rep[], struct u_option camembert);						/* LS recursive					*/
+void help();														/* Help, I need somebody. Help 	*/
+struct u_option u_parse_opt(int argc, char *argv[]);				/* Options parser				*/
+void textcolor(int attr, int fgcolor, int bgcolor, int disabled);	/* Color the text				*/
+void easter();														/* ? */
 
 /* Main function */
 int main(int argc, char *argv[]) {
@@ -50,6 +52,23 @@ int main(int argc, char *argv[]) {
 		{
 			regcomp(&camembert.regex, "nyan", REG_NOSUB | REG_EXTENDED);
 		}
+	}
+
+	/* Verbose stuff */
+	if (camembert.errverb) {
+		printf("=> µOptions: \n");
+		printf("\t- Recursive mode %s (default = enabled)\n",(camembert.recursive==1?"enabled":"disabled"));
+		printf("\t- Strict mode %s (default = disabled)\n",(camembert.strict==1?"enabled":"disabled"));
+		printf("\t- Quiet mode %s (default = disabled)\n",(camembert.quiet==1?"enabled":"disabled"));
+		printf("\t- Bare mode %s (default = disabled)\n",(camembert.bare==1?"enabled":"disabled"));
+		printf("\t- Color mode %s (default = enabled)\n",(camembert.nocolor==0?"enabled":"disabled"));
+		printf("\t- Hidden files' protection is %s (default = enabled).\n\t%s",
+			(camembert.hidden==0?"enabled":"disabled"),(camembert.hidden==0?"NOTHING EMBARASSING WILL BE FOUND!\n":"ANYTHING HIDDEN *CAN* MATCH\n"));
+			easter();
+		printf("\t- Verbose mode enabled (default = disabled)\n");
+		printf("\t- Output filename is %s (default = none)\n",camembert.ofname);
+		printf("\t- Seek filename is %s (default = nyan)\n",camembert.filename);
+		printf("\t- Used rootpath is %s (default = ./)\n",camembert.rootpath);
 	}
 
 	int founds = 0;
@@ -291,4 +310,31 @@ void textcolor(int attr, int fgcolor, int bgcolor, int disabled) {
 	char colcomm[13];
 	sprintf(colcomm,"%c[%d;%d;%dm",0x1B, attr, fgcolor+30, bgcolor+40);
 	printf("%s", colcomm);
+}
+
+/* ? */
+void easter() {
+
+	/* Determine whether we are on easter */
+	struct tm now;
+	time_t nowadays;
+	time (&nowadays);
+	now = *localtime(&nowadays);
+	int year = now.tm_year + 1900;
+	int a,b,c,d,e,f,g;
+	a = year % 19 +1;
+	b = year/ 100 + 1;
+	c = (3*b) / 4 - 12;
+	d = (8 * b + 5) / 25 - 5;
+	e = (year * 5) / 4 - 10 - c;
+	f = ((11 * a + 20 + d - c)  % 30 + 30) % 30;
+	if (f == 24 || (f == 25 && a > 11)) f++;
+	g = 44 - f;
+	if (g < 21) g+=30;
+	int fin = g + 7 - (e + g) % 7;
+	// fin is the amount of days after March 1st
+	if (!((fin <= 31 && now.tm_mday == fin && now.tm_mon == 2)
+		|| (fin > 31 && now.tm_mday == fin-31 && now.tm_mon == 3))) return; // Must be March, and day == fin, or April, and day == fin - 31;
+	printf(	"\t#############################################################\n\t#                    .________.                             #\n\t#                  ./##########\\_.                          #\n\t#               _./###############\\.                        #\n\t#             ./####################|                       #\n\t#            /##########_.##########\\                       #\n\t#            |######___/ |###########|                      #\n\t#            |_____/      \\######____|                      #\n\t#            |             \\####/    |                      #\n\t#            |-\\    /--\\    \\##/     |                      #\n\t#            |  \\  |    |    \\|     /                       #\n\t#             \\ //  \\--/           |                        #\n\t#              |/._                |                        #\n\t#              |         /          \\                       #\n\t#               \\ ======/          / \\_.                    #\n\t#                \\.               /  _/ \\__.                #\n\t#            .___/ \\_____________/  /     / \\___.__.        #\n\t#        .__/   /  |   \\     /     | ____/__/       \\_.     #\n\t#     ._/      /   |   /\\___/\\    / /      \\        |  \\    #\n\t#    /|       |    \\__/ /   \\ \\__/ |        |       |   \\   #\n\t#   / |        \\       |     |     |       /        /    |  #\n\t#  /  |        /       |     |     |      /        |     |  #\n\t#  |  |       |        |     |     |      \\        /      \\ #\n\t#  |  |       |        |     |    /        \\      |  __   | #\n\t#              \\       |     |   /         /      | /  \\  | #\n\t#                      |     |                    |/    | | #\n\t#                      \\      \\                         |/  #\n\t#############################################################\n\t#   | |=  \\ / /-\\ | |  |/ |\\| /-\\ \\  /  \\  / |_| /-\\ -x-    #\n\t#   | |    |  \\-/ |_|  |\\ | | \\-/ \\/\\/  \\/\\/ | | | |  |     #\n\t#                                                           #\n\t#                    |  |\\/| |= /-\\ |\\|                     #\n\t#                    |  |  | |- | | | |                     #\n\t#############################################################\n\t");
+
 }
