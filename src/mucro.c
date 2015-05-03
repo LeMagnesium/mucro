@@ -10,8 +10,11 @@
 #include <string.h>
 #include <dirent.h>
 #include <errno.h>
-#include <regex.h>
 #include <time.h>
+
+#ifndef WIN32
+#include <regex.h>
+#endif
 
 
 /* µ_OPTIONS STRUCT */
@@ -27,7 +30,10 @@ struct u_option {
 	char * filename;
 	char * rootpath;
 	FILE * stdout;
+#ifndef WIN32
 	regex_t regex;
+#endif
+
 };
 
 
@@ -48,10 +54,12 @@ int main(int argc, char *argv[]) {
 	camembert = u_parse_opt(argc, argv);
 	if (strcmp(camembert.filename,"nyan") == 0) {
 		printf("No filename entered, using the default one instead, hehe!\n");
+#ifndef WIN32
 		if (camembert.strict == 0)
 		{
 			regcomp(&camembert.regex, "nyan", REG_NOSUB | REG_EXTENDED);
 		}
+#endif
 	}
 
 	/* Verbose stuff */
@@ -133,11 +141,13 @@ int main(int argc, char *argv[]) {
 		}
 	}
 
+#ifndef WIN32
 	if (camembert.strict == 0)
 	{
 		/* Liberating regex's memory */
 		regfree (&camembert.regex);
 	}
+#endif
 
 	textcolor(0,7,0,camembert.nocolor);
 	return (EXIT_SUCCESS);
@@ -169,14 +179,22 @@ int ls(char rep[], struct u_option camembert) {
 		// TODO: Use here future regex_analyzer function
 		//if((regex_find(camembert.filename,iterator->d_name) == 1 && camembert.strict == 0)
 		//if(regex_cmp(camembert.filename,iterator->d_name) == 1) {
+#ifndef WIN32
 		int matching = 1;
 		if (camembert.strict == 0)
 		{
 			matching = regexec (&camembert.regex, iterator->d_name, 0, NULL, 0);
 		}
+#endif
 
+#ifdef WIN32
+		if (
+		(strstr(iterator->d_name,camembert.filename) != NULL && camembert.strict == 0)||
+		(strcmp(iterator->d_name,camembert.filename) == 0 && camembert.strict == 1))
+#else
 		if (camembert.strict == 1 && (strcmp(camembert.filename, iterator->d_name) == 0)
 		|| (camembert.strict == 0 && matching == 0))
+#endif
 		{
 
 			++founds;
@@ -228,7 +246,7 @@ void help() {
 	printf("    -b | -bare		: Print/save only the locations of files\n");
 	printf("    -r | -root		: Directory's path to start searching from\n");
 	printf("    -t | -hidden	: Seach even in hidden directories (which their names start by '.')\n");
-	printf("    -c | -nocolor	: Disables colors (always turned on if using windows)\n");
+	printf("    -c | -color		: Enables colors (always turned off)\n");
 	printf("    -v | -verbose	: Show errors in stdout\n");
 	printf("    filename       : name of the file to search\n");
 	printf("If you need some help contact me at mg<dot>minetest<at>gmail<dot>com or open an issue on the bucktracker at http://github.com/LeMagnesium/mucro/issues/ .\n");
@@ -244,11 +262,7 @@ struct u_option u_parse_opt(int argc, char * argv[]) {
 	returned.recursive 	= 1;
 	returned.quiet 		= 0;
 	returned.bare 		= 0;
-#ifndef WIN32
-	returned.nocolor	= 0;
-#else
 	returned.nocolor	= 1;
-#endif // If using or not windows
 	returned.hidden 	= 0;
 	returned.errverb 	= 0;
 	returned.filename 	= "nyan";
@@ -267,7 +281,7 @@ struct u_option u_parse_opt(int argc, char * argv[]) {
 		if(strcmp(argv[i],"-b") == 0 || strcmp(argv[i],"-bare") == 0) 			{returned.bare = 1;i++;continue;}
 		if(strcmp(argv[i],"-v") == 0 || strcmp(argv[i],"-verbose") == 0) 		{returned.errverb = 1;i++;continue;}
 		if(strcmp(argv[i],"-t") == 0 || strcmp(argv[i],"-hidden") == 0) 		{returned.hidden = 1;i++;continue;}
-		if(strcmp(argv[i],"-c") == 0 || strcmp(argv[i],"-nocolor") == 0) 		{returned.nocolor = 1;i++;continue;}
+		if(strcmp(argv[i],"-c") == 0 || strcmp(argv[i],"-color") == 0) 		{returned.nocolor = 0;i++;continue;}
 
 		if(strcmp(argv[i],"-r") == 0 || strcmp(argv[i],"-root") == 0) {
 			if (i == argc-1) {printf("No path given with -r... See mucro -h.\n");exit(0);}
@@ -289,6 +303,7 @@ struct u_option u_parse_opt(int argc, char * argv[]) {
 		}
 	}
 
+#ifndef WIN32
 	if (returned.strict == 0)
 	{
 		/* If strict mod is turned off, defining regex */
@@ -300,6 +315,7 @@ struct u_option u_parse_opt(int argc, char * argv[]) {
 			exit(1);
 		}
 	}
+#endif
 
 	return returned;
 }
