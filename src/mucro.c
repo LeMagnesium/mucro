@@ -209,11 +209,23 @@ int ls(char rep[], struct u_option camembert) {
 
 					char towrite[500];
 					if(!camembert.bare) {
-						sprintf(towrite,"Found at %s%s%s\n",rep, (rep[strlen(rep)-1] == '/'?"":"/"),iterator->d_name);
+						sprintf(towrite,"Found at %s%s%s\n",rep,
+#ifndef WIN32
+							(rep[strlen(rep)-1] == '/'?"":"/"),
+#else
+							(rep[strlen(rep)-1] == '\\'?"":"\\"),
+#endif
+							iterator->d_name);
 						fwrite(towrite,11+strlen(rep)+strlen(iterator->d_name),1,camembert.outfile);
 					}
 					else if(camembert.bare) {
-						sprintf(towrite,"%s%s%s\n",rep, (rep[strlen(rep)-1] == '/'?"":"/"), iterator->d_name);
+						sprintf(towrite,"%s%s%s\n",rep,
+#ifndef WIN32
+							(rep[strlen(rep)-1] == '/'?"":"/"),
+#else
+							(rep[strlen(rep)-1] == '\\'?"":"\\"),
+#endif
+							iterator->d_name);
 						fwrite(towrite,strlen(towrite),1,camembert.outfile);
 					}
 				}
@@ -225,7 +237,13 @@ int ls(char rep[], struct u_option camembert) {
 		*/
 		if((int)(iterator->d_type) == 4 && camembert.recursive == 1) {
 			char nwdir[255];
-			sprintf(nwdir,"%s%s%s",rep,(rep[strlen(rep)-1] == '/'?"":"/"),iterator->d_name);
+			sprintf(nwdir,"%s%s%s",rep,
+#ifndef WIN32
+							(rep[strlen(rep)-1] == '/'?"":"/"),
+#else
+							(rep[strlen(rep)-1] == '\\'?"":"\\"),
+#endif
+							iterator->d_name);
 			founds += ls(nwdir, camembert);
 		}
 	}
