@@ -23,13 +23,13 @@ struct u_option {
 	int strict;
 	int quiet;
 	int bare;
-	int nocolor;
+	int color;
 	int hidden;
 	int errverb;
 	char * ofname;
 	char * filename;
 	char * rootpath;
-	FILE * stdout;
+	FILE * outfile;
 #ifndef WIN32
 	regex_t regex;
 #endif
@@ -69,7 +69,7 @@ int main(int argc, char *argv[]) {
 		printf("\t- Strict mode %s (default = disabled)\n",(camembert.strict==1?"enabled":"disabled"));
 		printf("\t- Quiet mode %s (default = disabled)\n",(camembert.quiet==1?"enabled":"disabled"));
 		printf("\t- Bare mode %s (default = disabled)\n",(camembert.bare==1?"enabled":"disabled"));
-		printf("\t- Color mode %s (default = enabled)\n",(camembert.nocolor==0?"enabled":"disabled"));
+		printf("\t- Color mode %s (default = disabled)\n",(camembert.color==1?"enabled":"disabled"));
 		printf("\t- Hidden files' protection is %s (default = enabled).\n\t%s",
 			(camembert.hidden==0?"enabled":"disabled"),(camembert.hidden==0?"NOTHING EMBARASSING WILL BE FOUND!\n":"ANYTHING HIDDEN *CAN* MATCH\n"));
 			easter();
@@ -81,13 +81,13 @@ int main(int argc, char *argv[]) {
 
 	int founds = 0;
 
-	textcolor(0,7,0,camembert.nocolor);printf("");
+	textcolor(0,7,0,camembert.color);printf("");
 	FILE * ofpnt = NULL;
 	if(strcmp(camembert.ofname," ") != 0) {
 		ofpnt = fopen(camembert.ofname,"r+");
 		if(ofpnt == NULL) {
 			char errstr[500];
-			textcolor(0,7,0,camembert.nocolor);
+			textcolor(0,7,0,camembert.color);
 			sprintf(errstr,"Error with %s",camembert.ofname);
 			perror(errstr);
 			printf("mucro keeps going, without output file\n");
@@ -108,27 +108,27 @@ int main(int argc, char *argv[]) {
 		}
 	}
 
-	camembert.stdout = ofpnt;
+	camembert.outfile = ofpnt;
 	char rep[255] = ".";
 	char * pntrep = rep;
 	if(!strcmp(camembert.rootpath, " ") == 0) {
 		pntrep = camembert.rootpath;
 	}
 
-	textcolor(1,1,0,camembert.nocolor);
+	textcolor(1,1,0,camembert.color);
 	if(!camembert.bare) {
 		printf("Looking for '%s' %s %s ...",
 			camembert.filename,
 			(camembert.recursive == 1?"from":"in"),
 			(strcmp(camembert.rootpath," ") == 0?"current path":camembert.rootpath));
-		textcolor(0,7,0,camembert.nocolor);
+		textcolor(0,7,0,camembert.color);
 		printf("\n");
 	}
-	textcolor(0,7,0,camembert.nocolor);
+	textcolor(0,7,0,camembert.color);
 
 	founds = ls(pntrep, camembert);
 
-	textcolor(1,2,0,camembert.nocolor);
+	textcolor(1,2,0,camembert.color);
 	if(!camembert.bare) {
 		printf("Found %d times.\n", founds);
 
@@ -149,7 +149,7 @@ int main(int argc, char *argv[]) {
 	}
 #endif
 
-	textcolor(0,7,0,camembert.nocolor);
+	textcolor(0,7,0,camembert.color);
 	return (EXIT_SUCCESS);
 }
 
@@ -199,22 +199,22 @@ int ls(char rep[], struct u_option camembert) {
 
 			++founds;
 			if(!camembert.quiet) {
-				if(!camembert.bare) {textcolor(0,1,0,camembert.nocolor);printf("Found at ");textcolor(0,2,0,camembert.nocolor);}
+				if(!camembert.bare) {textcolor(0,1,0,camembert.color);printf("Found at ");textcolor(0,2,0,camembert.color);}
 
 				printf("%s%s%s", rep, (rep[strlen(rep)-1] == '/'?"":"/"), iterator->d_name);
-				textcolor(0,7,0,camembert.nocolor);
+				textcolor(0,7,0,camembert.color);
 				printf("\n");
 
-				if(camembert.stdout != NULL) {
+				if(camembert.outfile != NULL) {
 
 					char towrite[500];
 					if(!camembert.bare) {
 						sprintf(towrite,"Found at %s%s%s\n",rep, (rep[strlen(rep)-1] == '/'?"":"/"),iterator->d_name);
-						fwrite(towrite,11+strlen(rep)+strlen(iterator->d_name),1,camembert.stdout);
+						fwrite(towrite,11+strlen(rep)+strlen(iterator->d_name),1,camembert.outfile);
 					}
 					else if(camembert.bare) {
 						sprintf(towrite,"%s%s%s\n",rep, (rep[strlen(rep)-1] == '/'?"":"/"), iterator->d_name);
-						fwrite(towrite,strlen(towrite),1,camembert.stdout);
+						fwrite(towrite,strlen(towrite),1,camembert.outfile);
 					}
 				}
 			}
@@ -262,13 +262,13 @@ struct u_option u_parse_opt(int argc, char * argv[]) {
 	returned.recursive 	= 1;
 	returned.quiet 		= 0;
 	returned.bare 		= 0;
-	returned.nocolor	= 1;
+	returned.color		= 0;
 	returned.hidden 	= 0;
 	returned.errverb 	= 0;
 	returned.filename 	= "nyan";
 	returned.ofname 	= " ";
 	returned.rootpath 	= " ";
-	returned.stdout 	= NULL;
+	returned.outfile 	= NULL;
 
 
 	int i = 1;
@@ -281,8 +281,15 @@ struct u_option u_parse_opt(int argc, char * argv[]) {
 		if(strcmp(argv[i],"-b") == 0 || strcmp(argv[i],"-bare") == 0) 			{returned.bare = 1;i++;continue;}
 		if(strcmp(argv[i],"-v") == 0 || strcmp(argv[i],"-verbose") == 0) 		{returned.errverb = 1;i++;continue;}
 		if(strcmp(argv[i],"-t") == 0 || strcmp(argv[i],"-hidden") == 0) 		{returned.hidden = 1;i++;continue;}
-		if(strcmp(argv[i],"-c") == 0 || strcmp(argv[i],"-color") == 0) 		{returned.nocolor = 0;i++;continue;}
 
+		if(strcmp(argv[i],"-c") == 0 || strcmp(argv[i],"-color") == 0) {
+#ifndef WIN32
+			returned.color = 1;
+#else
+			printf("Colors asked, but system is Windows. Ignoring\n");
+#endif
+			i++;continue;
+		}
 		if(strcmp(argv[i],"-r") == 0 || strcmp(argv[i],"-root") == 0) {
 			if (i == argc-1) {printf("No path given with -r... See mucro -h.\n");exit(0);}
 			returned.rootpath = argv[++i];i++;continue;
@@ -321,8 +328,8 @@ struct u_option u_parse_opt(int argc, char * argv[]) {
 }
 
 /* Text's coloring function */
-void textcolor(int attr, int fgcolor, int bgcolor, int disabled) {
-	if (disabled == 1) {return;}
+void textcolor(int attr, int fgcolor, int bgcolor, int enabled) {
+	if (enabled == 0) {return;}
 	char colcomm[13];
 	sprintf(colcomm,"%c[%d;%d;%dm",0x1B, attr, fgcolor+30, bgcolor+40);
 	printf("%s", colcomm);
