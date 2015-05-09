@@ -1,7 +1,7 @@
 /* Program ßý Mg. */
 
 /*
-	Mµcro, v0.1 ßý Mg, CopyRight 2015.
+	Mµcro, v0.1.1 ßý Mg, CopyRight 2015.
 	License : GPLv3 and further
 */
 
@@ -253,7 +253,7 @@ int ls(char rep[], struct u_option camembert) {
 
 /* Function printing help line, it seems logic */
 void help() {
-	printf("Mµcro, v0.1 ßý Mg, CopyRight 2015\n\n");
+	printf("Mµcro, v0.1.1 ßý Mg, CopyRight 2015\n\n");
 	printf("	mucro [-hsnq|filename] {-o filename}\n");
 	printf("\nOptions :\n");
 	printf("    -h | -help 	        : print the option (this)\n");
