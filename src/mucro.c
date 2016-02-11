@@ -22,7 +22,7 @@ struct u_option {
 	int recursive;
 	int strict;
 	int quiet;
-	int bare;
+	int elaborate;
 	int color;
 	int hidden;
 	int errverb;
@@ -68,7 +68,7 @@ int main(int argc, char *argv[]) {
 		printf("\t- Recursive mode %s (default = enabled)\n",(camembert.recursive==1?"enabled":"disabled"));
 		printf("\t- Strict mode %s (default = disabled)\n",(camembert.strict==1?"enabled":"disabled"));
 		printf("\t- Quiet mode %s (default = disabled)\n",(camembert.quiet==1?"enabled":"disabled"));
-		printf("\t- Bare mode %s (default = disabled)\n",(camembert.bare==1?"enabled":"disabled"));
+		printf("\t- Elaborate mode %s (default = disabled)\n",(camembert.elaborate==1?"enabled":"disabled"));
 		printf("\t- Color mode %s (default = disabled)\n",(camembert.color==1?"enabled":"disabled"));
 		printf("\t- Hidden files' protection is %s (default = enabled).\n\t%s",
 			(camembert.hidden==0?"enabled":"disabled"),(camembert.hidden==0?"NOTHING EMBARASSING WILL BE FOUND!\n":"ANYTHING HIDDEN *CAN* MATCH\n"));
@@ -96,7 +96,7 @@ int main(int argc, char *argv[]) {
 			/* We only use fseek if ofpnt have been set (!= NULL) */
 			fseek(ofpnt, 0, SEEK_END);
 			char anothertowrite[255];
-			if(!camembert.bare) {
+			if(camembert.elaborate) {
 				fwrite("-Mµcro Output-\n",16,1,ofpnt);
 				sprintf(anothertowrite,"Mµcro search result for %s :\n",camembert.filename);
 				fwrite(anothertowrite,28+strlen(camembert.filename),1,ofpnt);
@@ -116,7 +116,7 @@ int main(int argc, char *argv[]) {
 	}
 
 	textcolor(1,1,0,camembert.color);
-	if(!camembert.bare) {
+	if(camembert.elaborate) {
 		printf("Looking for '%s' %s %s ...",
 			camembert.filename,
 			(camembert.recursive == 1?"from":"in"),
@@ -129,7 +129,7 @@ int main(int argc, char *argv[]) {
 	founds = ls(pntrep, camembert);
 
 	textcolor(1,2,0,camembert.color);
-	if(!camembert.bare) {
+	if(camembert.elaborate) {
 		printf("Found %d times.\n", founds);
 
 		if(ofpnt != NULL) {
@@ -199,7 +199,7 @@ int ls(char rep[], struct u_option camembert) {
 
 			++founds;
 			if(!camembert.quiet) {
-				if(!camembert.bare) {textcolor(0,1,0,camembert.color);printf("Found at ");textcolor(0,2,0,camembert.color);}
+				if(camembert.elaborate) {textcolor(0,1,0,camembert.color);printf("Found at ");textcolor(0,2,0,camembert.color);}
 
 				printf("%s%s%s", rep, (rep[strlen(rep)-1] == '/'?"":"/"), iterator->d_name);
 				textcolor(0,7,0,camembert.color);
@@ -208,7 +208,7 @@ int ls(char rep[], struct u_option camembert) {
 				if(camembert.outfile != NULL) {
 
 					char towrite[500];
-					if(!camembert.bare) {
+					if(camembert.elaborate) {
 						sprintf(towrite,"Found at %s%s%s\n",rep,
 #ifndef WIN32
 							(rep[strlen(rep)-1] == '/'?"":"/"),
@@ -218,7 +218,7 @@ int ls(char rep[], struct u_option camembert) {
 							iterator->d_name);
 						fwrite(towrite,11+strlen(rep)+strlen(iterator->d_name),1,camembert.outfile);
 					}
-					else if(camembert.bare) {
+					else if(!camembert.elaborate) {
 						sprintf(towrite,"%s%s%s\n",rep,
 #ifndef WIN32
 							(rep[strlen(rep)-1] == '/'?"":"/"),
@@ -261,7 +261,7 @@ void help() {
 	printf("    -n | -non-recursive : search only in this directory\n");
 	printf("    -q | -quiet		: Quiet mode. Only print number of matches\n");
 	printf("    -o | -output 	: Save the output to the filename\n");
-	printf("    -b | -bare		: Print/save only the locations of files\n");
+	printf("    -e | -elaborate		: Print/save more than the locations of files\n");
 	printf("    -r | -root		: Directory's path to start searching from\n");
 	printf("    -t | -hidden	: Seach even in hidden directories (which their names start by '.')\n");
 	printf("    -c | -color		: Enables colors (always turned off)\n");
@@ -279,7 +279,7 @@ struct u_option u_parse_opt(int argc, char * argv[]) {
 	returned.strict		= 0;
 	returned.recursive 	= 1;
 	returned.quiet 		= 0;
-	returned.bare 		= 0;
+	returned.elaborate 		= 0;
 	returned.color		= 0;
 	returned.hidden 	= 0;
 	returned.errverb 	= 0;
@@ -296,7 +296,7 @@ struct u_option u_parse_opt(int argc, char * argv[]) {
 		if(strcmp(argv[i],"-strict") == 0 || strcmp(argv[i],"-s") == 0) 		{returned.strict = 1;i++;continue;}
 		if(strcmp(argv[i],"-non-recursive") == 0 || strcmp(argv[i],"-n") == 0) 	{returned.recursive = 0;i++;continue;}
 		if(strcmp(argv[i],"-quiet") == 0 || strcmp(argv[i],"-q") == 0) 			{returned.quiet = 1;i++;continue;}
-		if(strcmp(argv[i],"-b") == 0 || strcmp(argv[i],"-bare") == 0) 			{returned.bare = 1;i++;continue;}
+		if(strcmp(argv[i],"-e") == 0 || strcmp(argv[i],"-elaborate") == 0) 			{returned.elaborate = 1;i++;continue;}
 		if(strcmp(argv[i],"-v") == 0 || strcmp(argv[i],"-verbose") == 0) 		{returned.errverb = 1;i++;continue;}
 		if(strcmp(argv[i],"-t") == 0 || strcmp(argv[i],"-hidden") == 0) 		{returned.hidden = 1;i++;continue;}
 
